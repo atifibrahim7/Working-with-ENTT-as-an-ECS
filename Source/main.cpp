@@ -68,6 +68,16 @@ void GraphicsBehavior(entt::registry& registry)
 	registry.emplace<DRAW::VulkanRenderer>(display);
 	
 	// TODO : Load the Level then update the Vertex and Index Buffers
+	std::string cpuLevelJsonPath = (*config).at("Level1").at("levelFile").as<std::string>();
+	std::string cpuLevelModelFolderPath = (*config).at("Level1").at("modelPath").as<std::string>();
+
+	// Emplace CPULevel component
+	auto cpuLevelEntity = registry.create();
+	registry.emplace<DRAW::CPULevel>(cpuLevelEntity, cpuLevelJsonPath, cpuLevelModelFolderPath);
+
+	// Emplace GPULevel component
+	auto gpuLevelEntity = registry.create();
+	registry.emplace<DRAW::GPULevel>(gpuLevelEntity);
 
 
 	// Register for Vulkan clean up
