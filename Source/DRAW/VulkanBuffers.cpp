@@ -231,6 +231,17 @@ namespace DRAW
 		}
 	}
 
+	//part 1b 
+
+	void Construct_CPULevel(entt::registry& registry, entt::entity entity)
+	{
+
+	}
+	void Construct_GPULevel(entt::registry& registry, entt::entity entity)
+	{
+		//  filling it  in the next part
+	}
+	
 	// Use this MACRO to connect the EnTT Component Logic
 	CONNECT_COMPONENT_LOGIC() {
 		// register the Window component's logic
@@ -247,6 +258,11 @@ namespace DRAW
 		registry.on_construct<VulkanUniformBuffer>().connect<Construct_VulkanUniformBuffer>();
 		registry.on_update<VulkanUniformBuffer>().connect<Update_VulkanUniformBuffer>();
 		registry.on_destroy<VulkanUniformBuffer>().connect<Destroy_VulkanUniformBuffer>();
+
+
+		//part 1b 
+		registry.on_construct<CPULevel>().connect<Construct_CPULevel>(); 
+		registry.on_construct<GPULevel>().connect<Construct_GPULevel>();
 	}
 
 } // namespace DRAW
