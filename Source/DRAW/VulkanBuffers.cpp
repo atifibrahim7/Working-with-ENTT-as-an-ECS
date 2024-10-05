@@ -235,11 +235,57 @@ namespace DRAW
 
 	void Construct_CPULevel(entt::registry& registry, entt::entity entity)
 	{
+		// Get the CPULevel component that's being emplaced
+		auto& cpuLevel = registry.get<CPULevel>(entity);
 
+		// Create a GLog instance
+		GW::SYSTEM::GLog log;
+		log.Create("LevelLoader");
+		log.EnableConsoleLogging(true);  // Enable console logging for debugging
+
+		// Load the level
+		bool loadSuccess = cpuLevel.levelData.LoadLevel(
+			cpuLevel.jsonPath.c_str(),
+			cpuLevel.modelFolderPath.c_str(),
+			log
+		);
+
+		if (!loadSuccess)
+		{
+			log.LogCategorized("ERROR", "Failed to load level data");
+			// Handle the failure case here if needed
+			
+		}
+		else
+		{
+			log.LogCategorized("INFO", "Level data loaded successfully");
+		}
 	}
 	void Construct_GPULevel(entt::registry& registry, entt::entity entity)
 	{
 		//  filling it  in the next part
+		auto* cpuLevel = registry.try_get<CPULevel>(entity); 
+		if (!cpuLevel)
+		{
+			// Handle error: CPULevel not found
+			GW::SYSTEM::GLog log;
+			log.Create("GPULevelConstructor");
+			log.LogCategorized("ERROR", "CPULevel component not found when constructing GPULevel");
+			return;
+		}
+
+		// Vertex Buffer
+		registry.emplace<VulkanVertexBuffer>(entity); 
+		registry.emplace<std::vector<H2B::VERTEX>>(entity, cpuLevel->levelData.levelVertices); 
+		registry.patch<VulkanVertexBuffer>(entity); 
+
+		// Index Buffer
+		registry.emplace<VulkanIndexBuffer>(entity);	
+		registry.emplace<std::vector<unsigned int>>(entity, cpuLevel->levelData.levelIndices); 
+		registry.patch<VulkanIndexBuffer>(entity);	
+
+	
+	
 	}
 	
 	// Use this MACRO to connect the EnTT Component Logic
