@@ -49,7 +49,7 @@ namespace DRAW
 		layoutBinding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		layoutBinding[0].binding = 0;
 		layoutBinding[0].pImmutableSamplers = nullptr;
-		
+
 		layoutBinding[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		layoutBinding[1].descriptorCount = 1;
 		layoutBinding[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -98,11 +98,11 @@ namespace DRAW
 			VulkanGPUInstanceBuffer{16}); // Start with a reasonable size of elements. The Buffer will grow if it needs to later
 		auto& uniformBuffer = registry.emplace<VulkanUniformBuffer>(entity);
 
-		 
+
 		for (int i = 0; i < frameCount; i++)
 		{
-			
-			VkDescriptorBufferInfo uniformBufferInfo = { uniformBuffer.buffer[i], 0, VK_WHOLE_SIZE};
+
+		 	VkDescriptorBufferInfo uniformBufferInfo = { uniformBuffer.buffer[i], 0, VK_WHOLE_SIZE};
 			VkWriteDescriptorSet uniformWrite = {};
 			uniformWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			uniformWrite.dstSet = vulkanRenderer.descriptorSets[i];
@@ -311,7 +311,7 @@ namespace DRAW
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
 		auto& initializationData = registry.get<VulkanRendererInitialization>(entity);
 
-		GW::SYSTEM::GWindow win = registry.get<GW::SYSTEM::GWindow>(entity);		
+		GW::SYSTEM::GWindow win = registry.get<GW::SYSTEM::GWindow>(entity);
 #ifndef NDEBUG
 		const char* debugLayers[] = {
 			"VK_LAYER_KHRONOS_validation", // standard validation layer
@@ -337,7 +337,7 @@ namespace DRAW
 		vulkanRenderer.vlkSurface.GetAspectRatio(aspectRatio);
 		GW::MATH::GMatrix::ProjectionVulkanLHF(G2D_DEGREE_TO_RADIAN_F(initializationData.fovDegrees), aspectRatio, initializationData.nearPlane, initializationData.farPlane, vulkanRenderer.projMatrix);
 
-		
+
 		vulkanRenderer.vlkSurface.GetDevice((void**)&vulkanRenderer.device);
 		vulkanRenderer.vlkSurface.GetPhysicalDevice((void**)&vulkanRenderer.physicalDevice);
 		vulkanRenderer.vlkSurface.GetRenderPass((void**)&vulkanRenderer.renderPass);
@@ -454,7 +454,7 @@ namespace DRAW
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[frame], 0, nullptr);
 
 			// TODO: Draw all the things that need drawing
-			
+
 		}
 
 		vulkanRenderer.vlkSurface.EndFrame(true);

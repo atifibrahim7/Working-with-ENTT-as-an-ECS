@@ -244,52 +244,88 @@ namespace DRAW
 		log.EnableConsoleLogging(true);  // Enable console logging for debugging
 
 		// Load the level
+		try {
+			std::cout << "hell yeah";
 		bool loadSuccess = cpuLevel.levelData.LoadLevel(
 			cpuLevel.jsonPath.c_str(),
 			cpuLevel.modelFolderPath.c_str(),
 			log
 		);
-
 		if (!loadSuccess)
 		{
 			log.LogCategorized("ERROR", "Failed to load level data");
+
 			// Handle the failure case here if needed
-			
+
 		}
 		else
 		{
 			log.LogCategorized("INFO", "Level data loaded successfully");
 		}
+		}
+		catch (std::exception& e)
+		{
+			log.LogCategorized("ERROR", e.what());
+		}
+		
+		
 	}
 	void Construct_GPULevel(entt::registry& registry, entt::entity entity)
 	{
-		//  filling it  in the next part
-		auto* cpuLevel = registry.try_get<CPULevel>(entity); 
+		// Try to get the CPULevel component
+		auto* cpuLevel = registry.try_get<CPULevel>(entity);
+		GW::SYSTEM::GLog log;
+		log.Create("GPULevelConstructor");
+		log.EnableConsoleLogging(true);
 		if (!cpuLevel)
 		{
 			// Handle error: CPULevel not found
-			GW::SYSTEM::GLog log;
-			log.Create("GPULevelConstructor");
+		
 			log.LogCategorized("ERROR", "CPULevel component not found when constructing GPULevel");
 			return;
 		}
-
 		// Vertex Buffer
+   // Emplace VulkanVertexBuffer component
 		registry.emplace<VulkanVertexBuffer>(entity); 
-		registry.emplace<std::vector<H2B::VERTEX>>(entity, cpuLevel->levelData.levelVertices); 
-		registry.patch<VulkanVertexBuffer>(entity); 
+
+		// Emplace vertex data
+		registry.emplace<std::vector<H2B::VERTEX>>(entity, cpuLevel->levelData.levelVertices);
+
+		// Patch to update the vertex buffer
+		registry.patch<VulkanVertexBuffer>(entity);
 
 		// Index Buffer
-		registry.emplace<VulkanIndexBuffer>(entity);	
-		registry.emplace<std::vector<unsigned int>>(entity, cpuLevel->levelData.levelIndices); 
-		registry.patch<VulkanIndexBuffer>(entity);	
+		// Emplace VulkanIndexBuffer component
+		registry.emplace<VulkanIndexBuffer>(entity);
 
-	
-	
+		// Emplace index data
+		registry.emplace<std::vector<unsigned int>>(entity, cpuLevel->levelData.levelIndices);
+
+		// Patch to update the index buffer
+		registry.patch<VulkanIndexBuffer>(entity);
+		if (!registry.all_of<VulkanVertexBuffer, VulkanIndexBuffer>(entity)) {
+			if (registry.all_of<VulkanVertexBuffer>(entity)) {
+				std::cout << "VulkanVertexBuffer present, but VulkanIndexBuffer missing(ON CONSTRUCT)" << std::endl;
+			}
+			else if (registry.all_of<VulkanIndexBuffer>(entity)) {
+				std::cout << "VulkanIndexBuffer present, but VulkanVertexBuffer missing(ON CONSTRUCT)" << std::endl;
+			}
+			else {
+				std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are missing(ON CONSTRUCT)" << std::endl;
+			}
+		}
+		else {
+			std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are present (ON CONSTRUCT)" << std::endl;
+		}
+
+
+		
 	}
+
 	
 	// Use this MACRO to connect the EnTT Component Logic
 	CONNECT_COMPONENT_LOGIC() {
+	
 		// register the Window component's logic
 		registry.on_update<VulkanVertexBuffer>().connect<Update_VulkanVertexBuffer>();
 		registry.on_destroy<VulkanVertexBuffer>().connect<Destroy_VulkanVertexBuffer>();
@@ -304,11 +340,11 @@ namespace DRAW
 		registry.on_construct<VulkanUniformBuffer>().connect<Construct_VulkanUniformBuffer>();
 		registry.on_update<VulkanUniformBuffer>().connect<Update_VulkanUniformBuffer>();
 		registry.on_destroy<VulkanUniformBuffer>().connect<Destroy_VulkanUniformBuffer>();
-
-
 		//part 1b 
-		registry.on_construct<CPULevel>().connect<Construct_CPULevel>(); 
+		registry.on_construct<CPULevel>().connect<Construct_CPULevel>();
 		registry.on_construct<GPULevel>().connect<Construct_GPULevel>();
+
+		
 	}
 
 } // namespace DRAW
