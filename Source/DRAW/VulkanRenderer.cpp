@@ -402,7 +402,8 @@ namespace DRAW
 
 	// run this code when a VulkanRenderer component is updated
 	void Update_VulkanRenderer(entt::registry& registry, entt::entity entity)
-	{
+	{	
+		
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
 
 		if (-vulkanRenderer.vlkSurface.StartFrame(2, vulkanRenderer.clrAndDepth))
@@ -434,7 +435,29 @@ namespace DRAW
 		// Update uniform and storage buffers
 		registry.patch<VulkanUniformBuffer>(entity);
 
+	
 		// Build instance list and update buffer
+		auto instances = registry.group(entt::get<GeometryData, GPUInstance>);
+		instances.sort<GeometryData>([](const GeometryData& a, const GeometryData& b) {
+			return a < b;
+			});
+
+		// ! Debugging area
+		// 
+		//if (!registry.all_of<VulkanVertexBuffer, VulkanIndexBuffer>(entity)) {
+		//	if (registry.all_of<VulkanVertexBuffer>(entity)) {
+		//		std::cout << "VulkanVertexBuffer present, but VulkanIndexBuffer missing(ON render)" << std::endl;
+		//	}
+		//	else if (registry.all_of<VulkanIndexBuffer>(entity)) {
+		//		std::cout << "VulkanIndexBuffer present, but VulkanVertexBuffer missing(ON render)" << std::endl;
+		//	}
+		//	else {
+		//		std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are missing(ON render)" << std::endl;
+		//	}
+		//}
+		//else {
+		//	std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are present (ON render)" << std::endl;
+		//}
 
 		// Check for presence of the buffers first as they take a few frames before they are created
 		if (registry.all_of< VulkanVertexBuffer, VulkanIndexBuffer>(entity))
@@ -448,15 +471,63 @@ namespace DRAW
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer.buffer, offsets);
 				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, 0, VkIndexType::VK_INDEX_TYPE_UINT32);
 			}
-
+			//1 ---- -- - - - - -- -    We will be building our draw instructions right after that.
 			// TODO: Update buffers here before the bind of the descriptor sets
+			auto instances = registry.group(entt::get<GeometryData , GPUInstance>);
+
+			// Sort the group by GeometryData
+			instances.sort<GeometryData>([](const GeometryData& a, const GeometryData& b) {
+				return a < b;
+				});
+
+			// Create matched lists for GeometryData and GPUInstance
+			std::map<GeometryData, int> geometryDataMap;
+			std::vector<GPUInstance> gpuInstances;
+
+			// Loop through all entities in the group
+			for (auto entity : instances) {
+				auto& geometryData = instances.get<GeometryData>(entity);
+				auto& gpuInstance = instances.get<GPUInstance>(entity);
+
+				// Add GPUInstance to the vector
+				gpuInstances.push_back(gpuInstance);
+
+				// Add or update GeometryData in the map
+				if (geometryDataMap.find(geometryData) == geometryDataMap.end()) {
+					geometryDataMap[geometryData] = 1;
+				}
+				else {
+					geometryDataMap[geometryData]++;
+				}
+			}
+
+			// Emplace the GPUInstance vector onto the renderer's entity
+			registry.emplace_or_replace<std::vector<GPUInstance>>(entity, std::move(gpuInstances));
+
+			// Update the VulkanGPUInstanceBuffer
+			registry.patch<VulkanGPUInstanceBuffer>(entity);
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[frame], 0, nullptr);
 
 			// TODO: Draw all the things that need drawing
-
+			unsigned int instanceOffset = 0;
+			for (const auto& [geometryData, instanceCount] : geometryDataMap) {
+				vkCmdDrawIndexed(
+					commandBuffer,
+					geometryData.indexCount,   
+					instanceCount,             
+					geometryData.indexStart,   
+					geometryData.vertexStart,   
+					instanceOffset             
+				);
+				instanceOffset += instanceCount;
+			}
 		}
-
+		else {
+			std::cout << "Buffers not created yet!" << std::endl;
+			Sleep(1000); 
+		}
+		
 		vulkanRenderer.vlkSurface.EndFrame(true);
 	}
 

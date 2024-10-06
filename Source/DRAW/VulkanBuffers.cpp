@@ -212,6 +212,7 @@ namespace DRAW
 		data.camPos = camera.camMatrix.row4;
 		GW::MATH::GMatrix::InverseF(camera.camMatrix, data.viewMatrix);
 
+
 		unsigned int frame;
 		renderer.vlkSurface.GetSwapchainCurrentImage(frame);
 		GvkHelper::write_to_buffer(renderer.device, gpuBuffer.memory[frame], &data, sizeof(SceneData));
@@ -303,20 +304,7 @@ namespace DRAW
 
 		// Patch to update the index buffer
 		registry.patch<VulkanIndexBuffer>(entity);
-		if (!registry.all_of<VulkanVertexBuffer, VulkanIndexBuffer>(entity)) {
-			if (registry.all_of<VulkanVertexBuffer>(entity)) {
-				std::cout << "VulkanVertexBuffer present, but VulkanIndexBuffer missing(ON CONSTRUCT)" << std::endl;
-			}
-			else if (registry.all_of<VulkanIndexBuffer>(entity)) {
-				std::cout << "VulkanIndexBuffer present, but VulkanVertexBuffer missing(ON CONSTRUCT)" << std::endl;
-			}
-			else {
-				std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are missing(ON CONSTRUCT)" << std::endl;
-			}
-		}
-		else {
-			std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are present (ON CONSTRUCT)" << std::endl;
-		}
+		
 
 
 		// Create entities for each mesh in the level
@@ -346,9 +334,23 @@ namespace DRAW
 					});
 			}
 		}
+		if (!registry.all_of<VulkanVertexBuffer, VulkanIndexBuffer>(entity)) {
+			if (registry.all_of<VulkanVertexBuffer>(entity)) {
+				std::cout << "VulkanVertexBuffer present, but VulkanIndexBuffer missing(ON CONSTRUCT)" << std::endl;
+			}
+			else if (registry.all_of<VulkanIndexBuffer>(entity)) {
+				std::cout << "VulkanIndexBuffer present, but VulkanVertexBuffer missing(ON CONSTRUCT)" << std::endl;
+			}
+			else {
+				std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are missing(ON CONSTRUCT)" << std::endl;
+			}
+		}
+		else {
+			std::cout << "Both VulkanVertexBuffer and VulkanIndexBuffer are present (ON CONSTRUCT)" << std::endl;
+		}
 
+		
 
-		//	registry.emplace<VulkanGPUInstanceBuffer>(entity);
 		std::cout << "GPULevel construction completed for entity: " << static_cast<uint32_t>(entity) << std::endl;
 
 	}
