@@ -71,9 +71,9 @@ void GraphicsBehavior(entt::registry& registry)
 	std::string cpuLevelJsonPath = (*config).at("Level1").at("levelFile").as<std::string>();
 	std::string cpuLevelModelFolderPath = (*config).at("Level1").at("modelPath").as<std::string>();
 
-	auto levelEntity = registry.create();
-	registry.emplace<DRAW::CPULevel>(levelEntity, cpuLevelJsonPath, cpuLevelModelFolderPath);	
-	registry.emplace<DRAW::GPULevel>(levelEntity);	
+	
+	registry.emplace<DRAW::CPULevel>(display, cpuLevelJsonPath, cpuLevelModelFolderPath);
+	registry.emplace<DRAW::GPULevel>(display);
 
 
 	// Register for Vulkan clean up
