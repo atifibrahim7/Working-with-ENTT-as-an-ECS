@@ -246,7 +246,6 @@ namespace DRAW
 
 		// Load the level
 		try {
-			std::cout << "hell yeah";
 		bool loadSuccess = cpuLevel.levelData.LoadLevel(
 			cpuLevel.jsonPath.c_str(),
 			cpuLevel.modelFolderPath.c_str(),
