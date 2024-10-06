@@ -319,7 +319,38 @@ namespace DRAW
 		}
 
 
-		
+		// Create entities for each mesh in the level
+		for (const auto& blenderObject : cpuLevel->levelData.blenderObjects)
+		{
+			const auto& model = cpuLevel->levelData.levelModels[blenderObject.modelIndex];
+
+			// Iterate through all meshes in the model
+			for (unsigned int meshIndex = 0; meshIndex < model.meshCount; ++meshIndex)
+			{
+				const auto& mesh = cpuLevel->levelData.levelMeshes[model.meshStart + meshIndex];
+
+				// Create a new entity for this mesh
+				auto meshEntity = registry.create();
+
+				// Add GeometryData component
+				registry.emplace<GeometryData>(meshEntity, GeometryData{
+					static_cast<unsigned int>(model.indexStart + mesh.drawInfo.indexOffset),
+					mesh.drawInfo.indexCount,
+					static_cast<unsigned int>(model.vertexStart)  // Note: We don't have vertexOffset in BATCH, so we use the model's vertexStart
+					});
+
+				// Add GPUInstance component
+				registry.emplace<GPUInstance>(meshEntity, GPUInstance{
+					cpuLevel->levelData.levelTransforms[blenderObject.transformIndex],
+					cpuLevel->levelData.levelMaterials[model.materialStart + mesh.materialIndex].attrib
+					});
+			}
+		}
+
+
+		//	registry.emplace<VulkanGPUInstanceBuffer>(entity);
+		std::cout << "GPULevel construction completed for entity: " << static_cast<uint32_t>(entity) << std::endl;
+
 	}
 
 	
